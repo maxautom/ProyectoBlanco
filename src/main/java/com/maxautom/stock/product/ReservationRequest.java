@@ -1,0 +1,6 @@
+package com.maxautom.stock.product;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+
+public record ReservationRequest(@NotBlank String sku, @Min(1) int quantity) {}
