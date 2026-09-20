@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,16 +163,14 @@ public class BulkPriceImportService {
         BigDecimal preciseBasePrice = BigDecimal.valueOf(row.getBasePrice());
 
         PriceChangeEntry candidate = new PriceChangeEntry(row.getSku(), finalPrice);
-        boolean isDuplicate = distinctChanges.contains(candidate);
-        if (!isDuplicate) {
-            distinctChanges.add(candidate);
-        }
+        boolean isDuplicate = !distinctChanges.add(candidate);
 
         ProductPriceUpdateResult result = ProductPriceUpdateResult.success(
                 row.getSku(), preciseBasePrice, finalPrice, isDuplicate);
 
         int categoryId = info.getCategoryId();
-        resultsByCategory.computeIfAbsent(categoryId, key -> new ArrayList<>()).add(result);
+        resultsByCategory.computeIfAbsent(categoryId, key -> Collections.synchronizedList(new ArrayList<>()))
+                .add(result);
 
         priceStore.updatePrice(row.getSku(), finalPrice);
         progressStats.recordProcessed();
